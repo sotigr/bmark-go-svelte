@@ -1,0 +1,7 @@
+{
+    "verbose": true, 
+    "ext": "svelte,ts,html,sass",
+    "ignore": "public",
+    "exec": "npm run build --prefix=svelte || exit 1",
+    "signal": "SIGTERM" 
+}

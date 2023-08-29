@@ -1,0 +1,7 @@
+{
+    "verbose": true, 
+    "ext": "go,mod",
+    "ignore": ["svelte", "public"],
+    "exec": "go run main.go || exit 1",
+    "signal": "SIGTERM" 
+}

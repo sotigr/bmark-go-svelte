@@ -1,0 +1,21 @@
+version: '3.3'
+services:  
+  go-bookmarks-svelte:
+    container_name: go-bookmarks-svelte
+    build: 
+      context: ./
+      dockerfile: ./Dockerfile 
+    environment: 
+      - VERSION=0.1  
+      - ENV=dev
+      - GIN_MODE=debug
+      - BUCKET_NAME=${BUCKET_NAME}
+      - PATH_PREFIX=${PATH_PREFIX}
+      - GOOGLE_APPLICATION_CREDENTIALS=/key/key.json
+    ports:
+      - 80:80
+      - 5173:5173
+    volumes: 
+      - ./:/src  
+      - ${KEY_DIR}:/key
+ 
