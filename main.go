@@ -14,10 +14,11 @@ import (
 	storage "cloud.google.com/go/storage"
 )
 
-func main_middleware(bucket *storage.BucketHandle) gin.HandlerFunc {
+func main_middleware(bucket *storage.BucketHandle, c_emitter *emitter.HTTPEmitter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		c.Set("bucket", bucket)
+		c.Set("emitter", c_emitter)
 
 		c.Next()
 
@@ -42,7 +43,6 @@ func main() {
 	corsConfig.AllowHeaders = []string{"Origin", "Authorization", "User-Agent", "Content-Type"}
 
 	server.Use(cors.New(corsConfig))
-	server.Use(main_middleware(bkt))
 	// Logging middleware
 	if env == system.ENV_DEV {
 		server.Use(gin.Logger())
@@ -52,6 +52,8 @@ func main() {
 
 	lobby_pass := string("123")
 	c_emitter.CreateLobby("test_lobby", &lobby_pass)
+
+	server.Use(main_middleware(bkt, c_emitter))
 
 	server.GET("/test", func(c *gin.Context) {
 
@@ -67,7 +69,7 @@ func main() {
 	server.GET("/stop", func(c *gin.Context) {
 		emitter.CloseEmitter(c_emitter)
 		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
+			"message": "ok",
 		})
 	})
 	server.GET("/list", api.List)
