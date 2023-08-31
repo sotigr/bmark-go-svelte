@@ -73,6 +73,7 @@ func main() {
 		})
 	})
 	server.GET("/list", api.List)
+	server.GET("/read", api.Read)
 	server.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/app")
 	})
