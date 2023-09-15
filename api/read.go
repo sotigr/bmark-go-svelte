@@ -1,12 +1,8 @@
 package api
 
 import (
-	"context"
-	"fmt"
-	"io"
-	"os"
+	"main/store"
 	"strconv"
-	"strings"
 
 	"cloud.google.com/go/storage"
 	"github.com/gin-gonic/gin"
@@ -14,46 +10,31 @@ import (
 
 func Read(c *gin.Context) {
 	path := c.Query("path")
-	bkt := c.MustGet("bucket").(*storage.BucketHandle)
-	obj := bkt.Object(path)
-	ctx := context.Background()
-	attrs, err := obj.Attrs(ctx)
-
-	r, err := obj.NewReader(ctx)
-	if err != nil {
-		// TODO: Handle error.
+	downloadStr := c.Query("download")
+	download := false
+	if downloadStr == "true" {
+		download = true
 	}
-	defer r.Close()
 
-	name := attrs.Name[strings.LastIndex(attrs.Name, "/")+1:]
-	cachePath := name
+	bkt := c.MustGet("bucket").(*storage.BucketHandle)
+	file, write, close, err := store.Read(path, bkt, c.Writer)
+	defer close()
 
-	c.Writer.Header().Set("Content-Type", attrs.ContentType)
-	c.Writer.Header().Set("Content-Length", strconv.FormatInt(attrs.Size, 10))
-	c.Writer.Header().Set("Content-Disposition", "attachment; filename=\""+name+"\"")
+	if err != nil {
+		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+	}
 
-	if _, err := os.Stat(cachePath); err == nil {
-		f, err := os.Open(cachePath)
-		defer f.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-		wr := c.Writer
-		if _, err := io.Copy(wr, f); err != nil {
-			// TODO: Handle error.
+	c.Writer.Header().Set("Content-Type", file.ContentType)
+	c.Writer.Header().Set("Content-Length", strconv.FormatInt(file.Size, 10))
 
-			fmt.Println(err)
-		}
-	} else {
-		fi, err := os.Create(cachePath)
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer fi.Close()
-		wr := io.MultiWriter(c.Writer, fi)
-		if _, err := io.Copy(wr, r); err != nil {
-			// TODO: Handle error.
-		}
+	if download {
+		c.Writer.Header().Set("Content-Disposition", "attachment; filename=\""+file.Name+"\"")
+	}
+
+	write()
+
+	if err != nil {
+		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
 	}
 
 }

@@ -1,0 +1,69 @@
+package store
+
+import (
+	"context"
+	"io"
+	"main/lib/system"
+	"mime"
+	"os"
+
+	pth "path"
+
+	"cloud.google.com/go/storage"
+)
+
+func Read(path string, bkt *storage.BucketHandle, out io.Writer) (*File, func(), func(), error) {
+	name := system.FilenameFromPath(path)
+	cachePath := "/tmp/" + system.Sha256(path) + name // set temp path
+
+	if system.LocalExists(cachePath) {
+		stats, _ := os.Stat(cachePath)
+		f, err := os.Open(cachePath)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		file := File{
+			Name:        name,
+			FullName:    path,
+			Size:        stats.Size(),
+			Created:     stats.ModTime(),
+			ContentType: mime.TypeByExtension(pth.Ext(cachePath)),
+		}
+		return &file, func() {
+			if _, err := io.Copy(out, f); err != nil {
+			}
+		}, func() { f.Close() }, nil
+	} else {
+		obj := bkt.Object(path)
+		ctx := context.Background()
+
+		attrs, err := obj.Attrs(ctx)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		r, err := obj.NewReader(ctx)
+
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		fi, err := os.Create(cachePath)
+
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		wr := io.MultiWriter(out, fi)
+		file := File{
+			Name:        name,
+			FullName:    path,
+			Size:        attrs.Size,
+			Created:     attrs.Created,
+			ContentType: attrs.ContentType,
+		}
+
+		return &file, func() {
+			if _, err := io.Copy(wr, r); err != nil {
+			}
+		}, func() { fi.Close(); r.Close() }, nil
+	}
+}

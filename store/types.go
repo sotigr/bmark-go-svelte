@@ -1,6 +1,8 @@
-package io
+package store
 
-import "time"
+import (
+	"time"
+)
 
 type File struct {
 	Name        string    `json:"name"`

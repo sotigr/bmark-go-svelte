@@ -1,7 +1,7 @@
 package api
 
 import (
-	"main/io"
+	"main/store"
 	"net/http"
 
 	"cloud.google.com/go/storage"
@@ -12,6 +12,6 @@ func List(c *gin.Context) {
 	bkt := c.MustGet("bucket").(*storage.BucketHandle)
 	path := c.Query("path")
 
-	listing := io.List(bkt, path)
+	listing := store.List(bkt, path)
 	c.JSON(http.StatusOK, listing)
 }
