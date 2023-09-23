@@ -1,4 +1,4 @@
-FROM golang:1.19.4-bullseye
+FROM golang:1.21-bullseye
 
 RUN apt-get update && apt-get install curl -y
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - 

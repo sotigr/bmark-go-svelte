@@ -21,3 +21,7 @@ type DirectoryListing struct {
 	Files   *[]File `json:"files"`
 	Folders *[]Dir  `json:"folders"`
 }
+
+type FileLock struct {
+	Name string
+}

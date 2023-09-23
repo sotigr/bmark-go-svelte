@@ -13,8 +13,10 @@ import (
 )
 
 func Read(path string, bkt *storage.BucketHandle, out io.Writer) (*File, func(), func(), error) {
+	prefix := os.Getenv("PATH_PREFIX")
+	prefixPath := prefix + path
 	name := system.FilenameFromPath(path)
-	cachePath := "/tmp/" + system.Sha256(path) + name // set temp path
+	cachePath := "/tmp/" + system.Sha256(prefixPath) + name // set temp path
 
 	if system.LocalExists(cachePath) {
 		stats, _ := os.Stat(cachePath)
@@ -34,7 +36,9 @@ func Read(path string, bkt *storage.BucketHandle, out io.Writer) (*File, func(),
 			}
 		}, func() { f.Close() }, nil
 	} else {
-		obj := bkt.Object(path)
+
+		obj := bkt.Object(prefixPath)
+
 		ctx := context.Background()
 
 		attrs, err := obj.Attrs(ctx)

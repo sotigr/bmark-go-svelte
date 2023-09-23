@@ -8,18 +8,19 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	store "main/store"
 
 	storage "cloud.google.com/go/storage"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
-func main_middleware(bucket *storage.BucketHandle, c_emitter *emitter.HTTPEmitter) gin.HandlerFunc {
+func main_middleware(bucket *storage.BucketHandle, c_emitter *emitter.HTTPEmitter, file_lock *system.SafeList[store.FileLock]) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		c.Set("bucket", bucket)
 		c.Set("emitter", c_emitter)
-
+		c.Set("file_lock", file_lock)
 		c.Next()
 
 	}
@@ -28,6 +29,8 @@ func main_middleware(bucket *storage.BucketHandle, c_emitter *emitter.HTTPEmitte
 func main() {
 	env := system.GetEnv()
 	cn := 0
+
+	file_lock_list := system.NewSafeList[store.FileLock]()
 
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
@@ -53,7 +56,7 @@ func main() {
 	lobby_pass := string("123")
 	c_emitter.CreateLobby("test_lobby", &lobby_pass)
 
-	server.Use(main_middleware(bkt, c_emitter))
+	server.Use(main_middleware(bkt, c_emitter, file_lock_list))
 
 	server.GET("/test", func(c *gin.Context) {
 
@@ -74,6 +77,7 @@ func main() {
 	})
 	server.GET("/list", api.List)
 	server.GET("/read", api.Read)
+	server.POST("/write", api.Write)
 	server.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/app")
 	})

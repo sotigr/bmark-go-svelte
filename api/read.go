@@ -2,6 +2,7 @@ package api
 
 import (
 	"main/store"
+	"net/http"
 	"strconv"
 
 	"cloud.google.com/go/storage"
@@ -18,10 +19,14 @@ func Read(c *gin.Context) {
 
 	bkt := c.MustGet("bucket").(*storage.BucketHandle)
 	file, write, close, err := store.Read(path, bkt, c.Writer)
-	defer close()
 
 	if err != nil {
-		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "not_found",
+		})
+		return
+	} else {
+		defer close()
 	}
 
 	c.Writer.Header().Set("Content-Type", file.ContentType)
@@ -35,6 +40,7 @@ func Read(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+		return
 	}
 
 }
