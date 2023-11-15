@@ -2,8 +2,9 @@ package api
 
 import (
 	"context"
-	"main/lib/system"
-	"main/store"
+	"fmt"
+	"io"
+	"log"
 	"os"
 
 	"cloud.google.com/go/storage"
@@ -16,32 +17,26 @@ func Write(c *gin.Context) {
 	prefixPath := prefix + path
 
 	bkt := c.MustGet("bucket").(*storage.BucketHandle)
-	file_lock := c.MustGet("file_lock").(*system.SafeList[store.FileLock])
 
-	if file_lock.Exists(func(item *store.FileLock) bool {
-		if item.Name == path {
-			return true
-		} else {
-			return false
-		}
-	}) {
-		// TODO
-	}
-
+	fmt.Println(prefixPath)
 	obj := bkt.Object(prefixPath)
 
 	ctx := context.Background()
 	wr := obj.NewWriter(ctx)
 	defer wr.Close()
 
-	r, _, _ := c.Request.FormFile("file")
+	file, header, err := c.Request.FormFile("file")
+	filename := header.Filename
+	fmt.Println(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	buffer := []byte{}
+	_, err = io.Copy(wr, file)
 
-	r.Read(buffer)
-
-	wr.Write(buffer)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	c.JSON(200, gin.H{"message": "ok"})
-
 }
