@@ -75,9 +75,12 @@ func main() {
 			"message": "ok",
 		})
 	})
+
 	server.GET("/list", api.List)
 	server.GET("/read", api.Read)
 	server.POST("/write", api.Write)
+	server.DELETE("/delete", api.Delete)
+
 	server.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/app")
 	})

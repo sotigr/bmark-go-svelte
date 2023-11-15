@@ -2,15 +2,13 @@ package api
 
 import (
 	"context"
-	"io"
-	"log"
 	"os"
 
 	"cloud.google.com/go/storage"
 	"github.com/gin-gonic/gin"
 )
 
-func Write(c *gin.Context) {
+func Delete(c *gin.Context) {
 	path := c.Query("path")
 	prefix := os.Getenv("PATH_PREFIX")
 	prefixPath := prefix + path
@@ -20,20 +18,7 @@ func Write(c *gin.Context) {
 	obj := bkt.Object(prefixPath)
 
 	ctx := context.Background()
-	wr := obj.NewWriter(ctx)
-	defer wr.Close()
-
-	file, _, err := c.Request.FormFile("file")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = io.Copy(wr, file)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	obj.Delete(ctx)
 
 	c.JSON(200, gin.H{"message": "ok"})
 }
