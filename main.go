@@ -80,6 +80,8 @@ func main() {
 	server.GET("/read", api.Read)
 	server.POST("/write", api.Write)
 	server.DELETE("/delete", api.Delete)
+	server.POST("/move", api.Move)
+	server.POST("/folder", api.Folder)
 
 	server.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/app")
