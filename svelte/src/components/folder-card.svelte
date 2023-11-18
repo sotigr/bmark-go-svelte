@@ -15,7 +15,7 @@
 >
     <img
         class="w-[160px] h-[100px] object-contain"
-        src="/Papirus/32x32/places/folder-brown.svg"
+        src="assets/Papirus/24x24/places/folder-brown.svg"
         alt={title}
     />
     <div class="p-4 w-[160px]">

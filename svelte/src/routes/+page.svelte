@@ -8,6 +8,7 @@
         CloseButton,
         ButtonGroup,
         DarkMode,
+        
     } from "flowbite-svelte";
     import { Icon } from "flowbite-svelte-icons";
     import { sineIn } from "svelte/easing";
@@ -16,8 +17,7 @@
 
     import axios from "axios";
     import type { DirectoryListing } from "../types";
-    import Clickable from "../components/clickable.svelte";
-
+    import Clickable from "../components/clickable.svelte"; 
     let transitionParams = {
         x: -320,
         duration: 200,
@@ -42,13 +42,14 @@
 
     let listing: DirectoryListing | null = null;
     let cPath: string = "";
+ 
 
     async function listDirectory() {
         let path = sessionStorage.getItem("path") || "";
         const res = await axios.get(`http://localhost/list?path=${path}`);
         listing = res.data;
         cPath = path;
-        window.scrollTo(0,0)
+        window.scrollTo(0,0)  
     }
 
     async function setDirectory(path: string) {
@@ -66,7 +67,7 @@
                 setDirectory(sub+"/")
             }
     }
-
+ 
     onMount(async () => {
         // window.eventSource = new EventSource(
         //     "http://localhost/sys/event-buffer?lobbies=test_lobby:123"
@@ -98,8 +99,8 @@
         <Button on:click={() => (drawerHidden = false)}
             ><Icon name="bars-outline" class="w-5 h-5" /></Button
         >
-        <Button>Settings</Button>
-        <Button>Messages</Button>
+        <!-- <Button>Settings</Button>
+        <Button>Messages</Button> -->
     </ButtonGroup>
     
     <Breadcrumb
@@ -149,7 +150,7 @@
                             on:click={() => alert("yo")}
                             size={item.size}
                             created={item.created}
-                            img="/bathuman.png"
+                            img={`http://localhost:80/read?path=${item.fullName}`}
                             title={item.name}
                         />
                     </div>

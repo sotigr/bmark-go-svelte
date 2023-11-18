@@ -1,8 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"main/store"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"cloud.google.com/go/storage"
@@ -10,7 +12,11 @@ import (
 )
 
 func Read(c *gin.Context) {
-	path := c.Query("path")
+	path, err := url.QueryUnescape(c.Query("path"))
+	if err != nil {
+		return
+	}
+
 	downloadStr := c.Query("download")
 	download := false
 	if downloadStr == "true" {
@@ -24,6 +30,7 @@ func Read(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "not_found",
 		})
+		fmt.Println(err)
 		return
 	} else {
 		defer close()

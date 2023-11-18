@@ -5,3 +5,6 @@
 * { 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif!important;
 }
+img:not([src]):not([srcset]) {
+    visibility: hidden;
+  }

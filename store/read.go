@@ -15,8 +15,9 @@ import (
 func Read(path string, bkt *storage.BucketHandle, out io.Writer) (*File, func(), func(), error) {
 	prefix := os.Getenv("PATH_PREFIX")
 	prefixPath := prefix + path
+
 	name := system.FilenameFromPath(path)
-	cachePath := "/tmp/" + system.Sha256(prefixPath) + name // set temp path
+	cachePath := "/tmp/" + system.ShortHash(prefixPath) + name // set temp path
 
 	if system.LocalExists(cachePath) {
 		stats, _ := os.Stat(cachePath)
@@ -51,12 +52,19 @@ func Read(path string, bkt *storage.BucketHandle, out io.Writer) (*File, func(),
 		if err != nil {
 			return nil, nil, nil, err
 		}
-		fi, err := os.Create(cachePath)
 
-		if err != nil {
-			return nil, nil, nil, err
+		var fi *os.File
+		var wr io.Writer
+		if attrs.Size < 10000000 /* 10 mb */ {
+			fi, err = os.Create(cachePath)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+
+			wr = io.MultiWriter(out, fi)
+		} else {
+			wr = out
 		}
-		wr := io.MultiWriter(out, fi)
 		file := File{
 			Name:        name,
 			FullName:    path,

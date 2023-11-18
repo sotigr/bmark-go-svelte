@@ -15,3 +15,9 @@ export type DirectoryListing = {
     files: File[]
     folders: Dir[]
 }
+
+declare global {
+    interface Window { lazyLoad: any; }
+}
+
+window.lazyLoad = window.lazyLoad || {};
